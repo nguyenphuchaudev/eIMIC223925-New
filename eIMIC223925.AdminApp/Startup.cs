@@ -1,4 +1,6 @@
 using eIMIC223925.ApiIntegration;
+using eIMIC223925.ViewModels.System.Users;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -34,7 +36,8 @@ namespace eIMIC223925.AdminApp
                     options.AccessDeniedPath = "/User/Forbidden/";
                 });
 
-            services.AddControllersWithViews();
+            services.AddControllersWithViews()
+                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<LoginRequestValidator>());
 
             services.AddSession(options =>
             {
