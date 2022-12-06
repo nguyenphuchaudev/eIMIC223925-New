@@ -6,13 +6,22 @@
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
+@section Script{
+        <script>
+            setTimeout(function () {
+                $('#idThongBao').fadeOut('slow');
+            }, 3000);
+        </script>
+}
+
 <div class="container-fluid px-4">
     <h1 class="mt-4">Danh sách người dùng</h1>
     <ol class="breadcrumb mb-4">
         <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
         <li class="breadcrumb-item active">Danh sách người dùng</li>
     </ol>
-    
+
     <div class="card mb-12">
         <div class="card-header">
             <div class="row">
@@ -22,6 +31,17 @@
             </div>
         </div>
         <div class="card-body">
+
+            <div class="row">
+                @if (ViewBag.ThongBao != null)
+                {
+                    <div id="idThongBao" class="alert alert-success" role="alert">
+                        @ViewBag.ThongBao
+                    </div>
+                }
+
+            </div>
+
             <table class="table table-bordered">
                 <thead>
                     <tr>
@@ -33,7 +53,7 @@
                         <th></th>
                     </tr>
                 </thead>
-                
+
                 <tbody>
                     @foreach (var item in Model.Items)
                     {

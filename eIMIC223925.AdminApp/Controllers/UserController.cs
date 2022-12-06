@@ -28,6 +28,10 @@ namespace eIMIC223925.AdminApp.Controllers
                 PageSize = pageSize
             };
 
+            if (TempData["thongbao"] !=null)
+            {
+                ViewBag.ThongBao = TempData["thongbao"];
+            }   
             var data = await _userApiClient.GetUsersPagings(request);
 
             return View(data.ResultObj);
@@ -57,9 +61,85 @@ namespace eIMIC223925.AdminApp.Controllers
             var result = await _userApiClient.RegisterUser(request);
 
             if (result.IsSuccessed)
+            {
+                TempData["thongbao"] = "Thêm người dùng thành công!";
                 return RedirectToAction("Index");
+            }
 
             ModelState.AddModelError("",result.Message);
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(Guid Id)
+        {
+            var result = await _userApiClient.GetById(Id);
+
+            if (result.IsSuccessed)
+            {
+                var user = result.ResultObj;
+                var updateRequest = new UserUpdateRequest()
+                {
+                    Dob = user.Dob,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    Id = user.Id
+                };
+
+                return View(updateRequest);
+            }    
+
+            return RedirectToAction("Error","Home");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(UserUpdateRequest request)
+        {
+
+            if (!ModelState.IsValid)
+                return View();
+
+            var result = await _userApiClient.UpdateUser(request.Id,request);
+
+            if (result.IsSuccessed)
+            {
+                TempData["thongbao"] = "Sửa người dùng thành công!";
+                return RedirectToAction("Index");
+            }
+
+            ModelState.AddModelError("", result.Message);
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Delete(Guid Id)
+        {
+
+            return View(new UserDeleteRequest()
+            {
+                Id = Id
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(UserDeleteRequest request)
+        {
+
+            if (!ModelState.IsValid)
+                return View();
+
+            var result = await _userApiClient.Delete(request.Id);
+
+            if (result.IsSuccessed)
+            {
+                TempData["thongbao"] = "Xóa người dùng thành công!";
+                return RedirectToAction("Index");
+            }    
+                
+
+            ModelState.AddModelError("", result.Message);
             return View();
         }
 

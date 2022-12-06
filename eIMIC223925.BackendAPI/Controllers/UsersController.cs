@@ -66,15 +66,23 @@ namespace eIMIC223925.BackendAPI.Controllers
         [HttpGet("paging")]
         public async Task<IActionResult> GetAllPaging([FromQuery] GetUserPagingRequest request)
         {
-            var products = await _userService.GetUsersPaging(request);
-            return Ok(products);
+            var users = await _userService.GetUsersPaging(request);
+            return Ok(users);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}")] //https://localhost:5001/api/users/{id}
         public async Task<IActionResult> GetById(Guid id)
         {
             var user = await _userService.GetById(id);
             return Ok(user);
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var result = await _userService.Delete(id);
+            return Ok(result);
+        }
+
     }
 }
