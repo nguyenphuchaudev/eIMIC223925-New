@@ -13,8 +13,8 @@ namespace eIMIC223925.Application.Catalog.Products
         Task<int> Create(ProductCreateRequest request);
         Task<int> Update(ProductUpdateRequest request);
         Task<int> Delete(int productId);
-        Task<ProductViewModel> GetById(int productId, string languageId);
-        Task<PagedResult<ProductViewModel>> GetAllPaging(GetManageProductPagingRequest request);
+        Task<ProductVm> GetById(int productId, string languageId);
+        Task<PagedResult<ProductVm>> GetAllPaging(GetManageProductPagingRequest request);
         Task<bool> UpdatePrice(int productId, decimal newPrice);
         Task<bool> UpdateStock(int productId, int addedQuantity);
         Task AddViewcount(int productId);
@@ -23,7 +23,7 @@ namespace eIMIC223925.Application.Catalog.Products
         Task<int> UpdateImage(int imageId, ProductImageUpdateRequest request);
         Task<ProductImageViewModel> GetImageById(int imageId);
         Task<List<ProductImageViewModel>> GetListImages(int productId);
-        Task<List<ProductViewModel>> GetAll();// string languageId);
-        Task<PagedResult<ProductViewModel>> GetAllByCategoryId(string languageId, GetPublicProductPagingRequest request);
+        Task<List<ProductVm>> GetAll();// string languageId);
+        Task<PagedResult<ProductVm>> GetAllByCategoryId(string languageId, GetPublicProductPagingRequest request);
     }
 }

@@ -26,5 +26,6 @@ namespace eIMIC223925.ViewModels.System.Users
 
         [Display(Name = "Ngày sinh")]
         public DateTime Dob { get; set; }
+        public IList<string> Roles { get; set; }
     }
 }
