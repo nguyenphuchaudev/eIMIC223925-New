@@ -64,14 +64,8 @@ namespace eIMIC223925.ApiIntegration
         {
             var client = _httpClientFactory.CreateClient();
             client.BaseAddress = new Uri(_configuration[SystemConstants.AppSettings.BaseAddress]);
-
-
             var session = _httpContextAccessor.HttpContext.Session.GetString(SystemConstants.AppSettings.Token);
-
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", session);
-
-            
-
             var response = await client.GetAsync($"/api/users/{Id}");
             var result = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
