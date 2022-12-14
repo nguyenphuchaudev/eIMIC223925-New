@@ -28,7 +28,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "eIMIC223925.WebApp", "eIMIC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "eIMIC223925.AdminApp", "eIMIC223925.AdminApp\eIMIC223925.AdminApp.csproj", "{860DF653-0617-423A-9C85-375D878C02F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eIMIC223925.ApiIntegration", "eIMIC223925.ApiIntegration\eIMIC223925.ApiIntegration.csproj", "{73E0764A-1CD7-459A-8B15-C727E1D5A2A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "eIMIC223925.ApiIntegration", "eIMIC223925.ApiIntegration\eIMIC223925.ApiIntegration.csproj", "{73E0764A-1CD7-459A-8B15-C727E1D5A2A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

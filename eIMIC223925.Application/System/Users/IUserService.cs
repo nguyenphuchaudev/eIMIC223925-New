@@ -1,4 +1,5 @@
 ﻿using eIMIC223925.ViewModels.Common;
+using eIMIC223925.ViewModels.System.Roles;
 using eIMIC223925.ViewModels.System.Users;
 using System;
 using System.Collections.Generic;
@@ -20,5 +21,6 @@ namespace eIMIC223925.Application.System.Users
         Task<ApiResult<UserVm>> GetById(Guid id);
 
         Task<ApiResult<bool>> Delete(Guid id);
+        Task<ApiResult<bool>> RoleAssign(Guid id, RoleAssignRequest request);
     }
 }

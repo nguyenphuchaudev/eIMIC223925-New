@@ -24,7 +24,7 @@ namespace eIMIC223925.AdminApp.Controllers
             _userApiClient = userApiClient;
             _roleApiClient = roleApiClient;
         }
-        public async Task<IActionResult> Index(string keyWord, int pageIndex = 1, int pageSize = 2)
+        public async Task<IActionResult> Index(string keyWord, int pageIndex = 1, int pageSize = 5)
         {
             var request = new GetUserPagingRequest()
             {
@@ -36,7 +36,9 @@ namespace eIMIC223925.AdminApp.Controllers
             if (TempData["thongbao"] !=null)
             {
                 ViewBag.ThongBao = TempData["thongbao"];
-            }   
+            }
+
+            ViewBag.Keyword = keyWord;
             var data = await _userApiClient.GetUsersPagings(request);
 
             return View(data.ResultObj);
@@ -164,6 +166,25 @@ namespace eIMIC223925.AdminApp.Controllers
             return View(roleAssignRequest);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> RoleAssign(RoleAssignRequest request)
+        {
+            if (!ModelState.IsValid)
+                return View();
+
+            var result = await _userApiClient.RoleAssign(request.Id, request);
+
+            if (result.IsSuccessed)
+            {
+                TempData["thongbao"] = "Cập nhật quyền thành công";
+                return RedirectToAction("Index");
+            }
+
+            ModelState.AddModelError("", result.Message);
+            var roleAssignRequest = await GetRoleAssignRequest(request.Id);
+
+            return View(roleAssignRequest);
+        }
         private async Task<RoleAssignRequest> GetRoleAssignRequest(Guid id)
         {
             
@@ -181,5 +202,7 @@ namespace eIMIC223925.AdminApp.Controllers
             }
             return roleAssignRequest;
         }
+
+
     }
 }

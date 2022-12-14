@@ -1,4 +1,5 @@
 ﻿using eIMIC223925.Application.System.Users;
+using eIMIC223925.ViewModels.System.Roles;
 using eIMIC223925.ViewModels.System.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -81,6 +82,20 @@ namespace eIMIC223925.BackendAPI.Controllers
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _userService.Delete(id);
+            return Ok(result);
+        }
+
+        [HttpPut("{id}/roles")]
+        public async Task<IActionResult> RoleAssign(Guid id, [FromBody] RoleAssignRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _userService.RoleAssign(id, request);
+            if (!result.IsSuccessed)
+            {
+                return BadRequest(result);
+            }
             return Ok(result);
         }
 

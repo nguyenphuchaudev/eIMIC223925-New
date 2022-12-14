@@ -9,6 +9,6 @@ namespace eIMIC223925.ViewModels.Catalog.Products
     {
         public string Keyword { get; set; }
         public string LanguageId { get; set; }
-        public int CategoryId { get; set; }
+        public int? CategoryId { get; set; }
     }
 }

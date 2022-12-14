@@ -60,6 +60,7 @@ namespace eIMIC223925.AdminApp.Controllers
                 IsPersistent = false
             };
 
+            HttpContext.Session.SetString(SystemConstants.AppSettings.DefaultLanguageId, _configuration[SystemConstants.AppSettings.DefaultLanguageId]);
             HttpContext.Session.SetString(SystemConstants.AppSettings.Token,result.ResultObj);
 
             await HttpContext.SignInAsync(
