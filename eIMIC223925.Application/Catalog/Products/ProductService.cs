@@ -1,6 +1,7 @@
 ﻿using eIMIC223925.Application.Common;
 using eIMIC223925.DATA.EF;
 using eIMIC223925.DATA.Entities;
+using eIMIC223925.Utilities.Constants;
 using eIMIC223925.Utilities.Exceptions;
 using eIMIC223925.ViewModels.Catalog.ProductImages;
 using eIMIC223925.ViewModels.Catalog.Products;
@@ -57,18 +58,14 @@ namespace eIMIC223925.Application.Catalog.Products
 
         public async Task<int> Create(ProductCreateRequest request)
         {
-            //1. Repare
-            var product = new Product()
+            var languages = _context.Languages;
+            var translations = new List<ProductTranslation>();
+            foreach (var language in languages)
             {
-                Price = request.Price,
-                OriginalPrice = request.OriginalPrice,
-                Stock = request.Stock,
-                ViewCount = 0,
-                DateCreated = DateTime.Now,
-                ProductTranslations = new List<ProductTranslation>()
+                if (language.Id == request.LanguageId)
                 {
-                    new ProductTranslation()
-                    { 
+                    translations.Add(new ProductTranslation()
+                    {
                         Name = request.Name,
                         Description = request.Description,
                         Details = request.Details,
@@ -76,10 +73,29 @@ namespace eIMIC223925.Application.Catalog.Products
                         SeoAlias = request.SeoAlias,
                         SeoTitle = request.SeoTitle,
                         LanguageId = request.LanguageId
-                    }
+                    });
                 }
+                else
+                {
+                    translations.Add(new ProductTranslation()
+                    {
+                        Name = SystemConstants.ProductConstants.NA,
+                        Description = SystemConstants.ProductConstants.NA,
+                        SeoAlias = SystemConstants.ProductConstants.NA,
+                        LanguageId = language.Id
+                    });
+                }
+            }
+            var product = new Product()
+            {
+                Price = request.Price,
+                OriginalPrice = request.OriginalPrice,
+                Stock = request.Stock,
+                ViewCount = 0,
+                DateCreated = DateTime.Now,
+                ProductTranslations = translations
             };
-            //2. Save Image product
+            //Save image
             if (request.ThumbnailImage != null)
             {
                 product.ProductImages = new List<ProductImage>()
@@ -95,11 +111,10 @@ namespace eIMIC223925.Application.Catalog.Products
                     }
                 };
             }
-            //3. Save product
-
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
             return product.Id;
+
         }
         
         public async Task<int> Delete(int productId)
@@ -259,7 +274,13 @@ namespace eIMIC223925.Application.Catalog.Products
             var productTranslation = await _context.ProductTranslations.FirstOrDefaultAsync(x => x.ProductId == productId
             && x.LanguageId == languageId);
 
-            if (product == null || productTranslation == null) throw new eIMIC223925Exception($"Cannot find a product with id: {productId}");
+            var categories = await (from c in _context.Categories
+                                    join ct in _context.CategoryTranslations on c.Id equals ct.CategoryId
+                                    join pic in _context.ProductInCategories on c.Id equals pic.CategoryId
+                                    where pic.ProductId == productId && ct.LanguageId == languageId
+                                    select ct.Name).ToListAsync();
+
+            var image = await _context.ProductImages.Where(x => x.ProductId == productId && x.IsDefault == true).FirstOrDefaultAsync();
 
             var productViewModel = new ProductVm()
             {
@@ -275,9 +296,10 @@ namespace eIMIC223925.Application.Catalog.Products
                 SeoDescription = productTranslation != null ? productTranslation.SeoDescription : null,
                 SeoTitle = productTranslation != null ? productTranslation.SeoTitle : null,
                 Stock = product.Stock,
-                ViewCount = product.ViewCount
+                ViewCount = product.ViewCount,
+                Categories = categories,
+                ThumbnailImage = image != null ? image.ImagePath : "no-image.jpg"
             };
-
             return productViewModel;
         }
 
