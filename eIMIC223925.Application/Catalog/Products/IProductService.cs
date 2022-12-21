@@ -25,5 +25,7 @@ namespace eIMIC223925.Application.Catalog.Products
         Task<List<ProductImageViewModel>> GetListImages(int productId);
         Task<List<ProductVm>> GetAll();// string languageId);
         Task<PagedResult<ProductVm>> GetAllByCategoryId(string languageId, GetPublicProductPagingRequest request);
+
+        Task<ApiResult<bool>> CategoryAssign(int id, CategoryAssignRequest request);
     }
 }

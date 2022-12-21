@@ -1,8 +1,11 @@
 ﻿using eIMIC223925.ApiIntegration;
 using eIMIC223925.Utilities.Constants;
 using eIMIC223925.ViewModels.Catalog.Products;
+using eIMIC223925.ViewModels.Common;
+using eIMIC223925.ViewModels.System.Products;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -15,20 +18,17 @@ namespace eIMIC223925.AdminApp.Controllers
     {
         private readonly IProductApiClient _productApiClient;
         private readonly IConfiguration _configuration;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        //private readonly ICategoryApiClient _categoryApiClient;
+        private readonly ICategoryApiClient _categoryApiClient;
 
         public ProductController(IProductApiClient productApiClient,
             IConfiguration configuration,
-            IHttpContextAccessor httpContextAccessor
-            //,ICategoryApiClient categoryApiClient
+            IHttpContextAccessor httpContextAccessor,
+            ICategoryApiClient categoryApiClient
             )
         {
             _configuration = configuration;
             _productApiClient = productApiClient;
-            _httpContextAccessor = httpContextAccessor;
-            //_categoryApiClient = categoryApiClient;
+            _categoryApiClient = categoryApiClient;
         }
         public async Task<IActionResult> Index(string keyWord, int? categoryId, int pageIndex =1, int pageSize = 5)
         {
@@ -45,13 +45,13 @@ namespace eIMIC223925.AdminApp.Controllers
 
             var data = await _productApiClient.GetPagings(request);
 
-            //var categories = await _categoryApiClient.GetAll(languageId);
-            //ViewBag.Categories = categories.Select(x => new SelectListItem()
-            //{
-            //    Text = x.Name,
-            //    Value = x.Id.ToString(),
-            //    Selected = categoryId.HasValue && categoryId.Value == x.Id
-            //});
+            var categories = await _categoryApiClient.GetAll(languageId);
+            ViewBag.Categories = categories.Select(x => new SelectListItem()
+            {
+                Text = x.Name,
+                Value = x.Id.ToString(),
+                Selected = categoryId.HasValue && categoryId.Value == x.Id
+            });
 
             if (TempData["result"] != null)
             {
@@ -86,14 +86,23 @@ namespace eIMIC223925.AdminApp.Controllers
             return View(request);
         }
 
-
         [HttpGet]
-        public IActionResult Edit(int Id)
+        public async Task<IActionResult> Edit(int Id)
         {
-            var languageId = _httpContextAccessor.HttpContext.Session.GetString(SystemConstants.AppSettings.DefaultLanguageId);
+            var languageId = HttpContext.Session.GetString(SystemConstants.AppSettings.DefaultLanguageId);
 
-            var product = _productApiClient.GetById(Id, languageId);
-            return View(product);
+            var product = await _productApiClient.GetById(Id, languageId);
+            var editVm = new ProductUpdateRequest()
+            {
+                Id = product.Id,
+                Description = product.Description,
+                Details = product.Details,
+                Name = product.Name,
+                SeoAlias = product.SeoAlias,
+                SeoDescription = product.SeoDescription,
+                SeoTitle = product.SeoTitle
+            };
+            return View(editVm);
         }
 
         [HttpPost]
@@ -112,6 +121,77 @@ namespace eIMIC223925.AdminApp.Controllers
 
             ModelState.AddModelError("", "Cập nhật sản phẩm thất bại");
             return View(request);
+        }
+
+        [HttpGet]
+        public IActionResult Delete(int id)
+        {
+            return View(new ProductDeleteRequest()
+            {
+                Id = id
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(ProductDeleteRequest request)
+        {
+            if (!ModelState.IsValid)
+                return View();
+
+            var result = await _productApiClient.DeleteProduct(request.Id);
+            if (result)
+            {
+                TempData["result"] = "Xóa sản phẩm thành công";
+                return RedirectToAction("Index");
+            }
+
+            ModelState.AddModelError("", "Xóa không thành công");
+            return View(request);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CategoryAssign(int id)
+        {
+            var roleAssignRequest = await GetCategoryAssignRequest(id);
+            return View(roleAssignRequest);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CategoryAssign(CategoryAssignRequest request)
+        {
+            if (!ModelState.IsValid)
+                return View();
+
+            var result = await _productApiClient.CategoryAssign(request.Id, request);
+
+            if (result.IsSuccessed)
+            {
+                TempData["result"] = "Cập nhật danh mục thành công";
+                return RedirectToAction("Index");
+            }
+
+            ModelState.AddModelError("", result.Message);
+            var roleAssignRequest = await GetCategoryAssignRequest(request.Id);
+
+            return View(roleAssignRequest);
+        }
+        private async Task<CategoryAssignRequest> GetCategoryAssignRequest(int id)
+        {
+            var languageId = HttpContext.Session.GetString(SystemConstants.AppSettings.DefaultLanguageId);
+
+            var productObj = await _productApiClient.GetById(id, languageId);
+            var categories = await _categoryApiClient.GetAll(languageId);
+            var categoryAssignRequest = new CategoryAssignRequest();
+            foreach (var role in categories)
+            {
+                categoryAssignRequest.Categories.Add(new SelectItem()
+                {
+                    Id = role.Id.ToString(),
+                    Name = role.Name,
+                    Selected = productObj.Categories.Contains(role.Name)
+                });
+            }
+            return categoryAssignRequest;
         }
     }
 }

@@ -3,6 +3,7 @@ using eIMIC223925.ViewModels.Catalog.Products;
 using eIMIC223925.ViewModels.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -71,25 +72,17 @@ namespace eIMIC223925.ApiIntegration
             return response.IsSuccessStatusCode;
         }
 
-        public Task<bool> DeleteProduct(int id)
+        public async Task<bool> DeleteProduct(int id)
         {
-            throw new NotImplementedException();
+            return await Delete($"/api/products/" + id);
         }
 
-        public async Task<ProductVm> GetById(int id, string languageId)
+        public async Task<ProductVm> GetById(int Id, string languageId)
         {
 
-            var client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri(_configuration[SystemConstants.AppSettings.BaseAddress]);
-            var session = _httpContextAccessor.HttpContext.Session.GetString(SystemConstants.AppSettings.Token);
+            var data = await GetAsync<ProductVm>($"/api/products/{Id}/{languageId}");
 
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", session);
-            var response = await client.GetAsync($"/api/products/{Id}");
-            var result = await response.Content.ReadAsStringAsync();
-            if (response.IsSuccessStatusCode)
-                return JsonConvert.DeserializeObject<ApiSuccessResult<UserVm>>(result);
-
-            return JsonConvert.DeserializeObject<ApiErrorResult<UserVm>>(result);
+            return data;
         }
 
         public Task<List<ProductVm>> GetFeaturedProducts(string languageId, int take)
@@ -150,6 +143,28 @@ namespace eIMIC223925.ApiIntegration
 
             var response = await client.PutAsync($"/api/products/" + request.Id, requestContent);
             return response.IsSuccessStatusCode;
+        }
+
+        public async Task<ApiResult<bool>> CategoryAssign(int id, CategoryAssignRequest request)
+        {
+            var client = _httpClientFactory.CreateClient();
+            client.BaseAddress = new Uri(_configuration["BaseAddress"]);
+            var sessions = _httpContextAccessor
+                .HttpContext
+                .Session
+                .GetString(SystemConstants.AppSettings.Token);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessions);
+
+            var json = JsonConvert.SerializeObject(request);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await client.PutAsync($"/api/products/{id}/categories", httpContent);
+            var result = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+                return JsonConvert.DeserializeObject<ApiSuccessResult<bool>>(result);
+
+            return JsonConvert.DeserializeObject<ApiErrorResult<bool>>(result);
         }
     }
 }
